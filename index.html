@@ -25,11 +25,9 @@
         <div class="content">
             <h1>Admission</h1>
             <p>Surgical patients tend to be middle-aged on average.</p>
-            <p id="gender-insight" class="fade-in-text">Men are more common to
-            go under surgery past their 60s.
+            <p id="gender-insight" class="fade-in-text">Men are more common to undergo surgery past their 60s.
                 
-            Women are more common to go under surgery 
-            between the ages of 30-60
+            Women are more common to undergo surgery between the ages of 30-60.
             </p>
             
             <div id="scroll" class="scroll-indicator-admission" onclick="scrollToSlide('diagnoses')">↓ Scroll to continue</div>
@@ -37,17 +35,28 @@
         <div class="visual" id="admission-vis"></div>
     </section>
 
+    <!-- Diagnoses Slide -->
     <section class="slide" id="diagnoses">
         <div class="content">
             <h1>Diagnoses</h1>
             <p>Each dot represents 5 patients that underwent some type of surgery.</p>
-            <p id="blue_dots" class="fade-in-text">Blue dots represent Gastrointestinal (GI) Cancers such as colon cancer, gastric cancer, pancreatic cancer, etc.. 
-            </p>
-            <p id="red_dots" class="fade-in-text">Blue dots represent Gastrointestinal (GI) Cancers such as colon cancer, gastric cancer, pancreatic cancer, etc.. 
-            </p>
-            <!-- <div id="scroll" class="scroll-indicator-admission" onclick="scrollToSlide('admission')">↓ Scroll to continue</div> -->
+            <p id="blue_dots" class="fade-in-text">Blue dots represent Gastrointestinal (GI) Cancers such as colon cancer, gastric cancer, pancreatic cancer, etc.</p>
+            <p id="red_dots" class="fade-in-text">Red dots represent Non-GI conditions such as lung cancer, hernias, and breast cancer.</p>
         </div>
         <div class="visual" id="diagnoses-vis"></div>
+    </section>
+
+    <!-- New Duration of Stay Slide -->
+    <section class="slide" id="duration-stay">
+        <div class="content">
+            <h1>Duration of Stay</h1>
+            <p>How long do patients typically stay in the hospital after surgery?</p>
+            <p id="duration-text" class="fade-in-text">
+                Patients undergoing major surgeries such as **gastrectomy** or **pancreatectomy** tend to have longer hospital stays, while minor surgeries like **cholecystectomy** result in shorter stays.
+            </p>
+            <div class="scroll-indicator-admission" onclick="scrollToSlide('next-slide')">↓ Scroll to continue</div>
+        </div>
+        <div class="visual" id="duration-vis"></div>
     </section>
 
     <script src="global.js"></script>
