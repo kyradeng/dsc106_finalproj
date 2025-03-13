@@ -515,7 +515,9 @@ document.addEventListener("DOMContentLoaded", function() {
         const durationTop = durationSlide.getBoundingClientRect().top;
         if (durationTop < window.innerHeight * 0.75 && !hasAnimatedDuration) {
             hasAnimatedDuration = true;
-            loadCasesData();
+            setTimeout(() => {
+                loadCasesData();  // Add delay for smoother load
+            }, 2000);
         }
 
     };
@@ -549,17 +551,24 @@ document.addEventListener("DOMContentLoaded", function() {
             .attr("transform", "translate(50,0)")
             .call(d3.axisLeft(yScale));
     
-        svg.selectAll(".bar")
+            svg.selectAll(".bar")
             .data(durationData)
             .enter()
             .append("rect")
+            .attr("class", "bar")
             .attr("x", d => xScale(d.surgery))
-            .attr("y", d => yScale(parseFloat(d.days)))
+            .attr("y", svgHeight - 50)  // Start from bottom
             .attr("width", xScale.bandwidth())
-            .attr("height", d => svgHeight - 50 - yScale(parseFloat(d.days)))
-            .attr("fill", "#69b3a2");
+            .attr("height", 0)  // Start with height 0
+            .attr("fill", "#69b3a2")
+            .transition()
+            .duration(1000)
+            .delay((d, i) => i * 200)  // Stagger effect
+            .attr("y", d => yScale(parseFloat(d.days)))
+            .attr("height", d => svgHeight - 50 - yScale(parseFloat(d.days)));
+        
     
-        svg.selectAll(".label")
+            svg.selectAll(".label")
             .data(durationData)
             .enter()
             .append("text")
@@ -568,7 +577,13 @@ document.addEventListener("DOMContentLoaded", function() {
             .attr("text-anchor", "middle")
             .attr("font-size", "12px")
             .attr("fill", "#000")
-            .text(d => d.days + " days");
+            .style("opacity", 0)  // Start hidden
+            .text(d => d.days + " days")
+            .transition()
+            .duration(1000)
+            .delay((d, i) => i * 200)  // Staggered effect
+            .style("opacity", 1);
+        
     }
     
 
