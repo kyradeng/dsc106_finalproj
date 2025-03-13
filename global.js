@@ -4,7 +4,6 @@ let currentDiagnosisIndex = 0;
 
 let hasAnimatedAdmissions = false;
 let hasAnimatedDiagnoses = false;
-let hasAnimatedDuration = false;
 
 const colorScale = d3.scaleOrdinal(d3.schemePaired); 
 
@@ -434,48 +433,6 @@ function setupTakeawaySection() {
     });
 }
 
-async function loadCasesData() {
-    try {
-        const response = await fetch('cases.txt');
-        const text = await response.text();
-        const lines = text.trim().split("\n");
-        const headers = lines[0].split(",");
-
-        const data = lines.slice(1).map(line => {
-            const values = line.split(",");
-            let row = {};
-            headers.forEach((header, index) => {
-                row[header] = values[index];
-            });
-            return row;
-        });
-
-        const surgeryStay = {};
-
-        data.forEach(row => {
-            const surgery = row.opname.trim();
-            const admTime = parseInt(row.adm, 10);
-            const disTime = parseInt(row.dis, 10);
-            const stayDuration = Math.max((disTime - admTime) / 1440, 0);
-
-            if (!surgeryStay[surgery]) {
-                surgeryStay[surgery] = { totalDays: 0, count: 0 };
-            }
-
-            surgeryStay[surgery].totalDays += stayDuration;
-            surgeryStay[surgery].count += 1;
-        });
-
-        const durationData = Object.keys(surgeryStay).map(surgery => ({
-            surgery: surgery,
-            days: (surgeryStay[surgery].totalDays / surgeryStay[surgery].count).toFixed(1)
-        }));
-
-        renderDurationOfStay(durationData);
-    } catch (error) {
-        console.error("Error loading cases.txt:", error);
-    }
-}
 
 
 
@@ -485,8 +442,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const slides = document.querySelectorAll(".slide");
     const admissionSlide = document.getElementById('admission');
     const diagnosesSlide = document.getElementById('diagnoses');
-    const durationSlide = document.getElementById('duration-stay');
-
 
     // Slide-in effect
     const handleScroll = () => {
@@ -511,81 +466,7 @@ document.addEventListener("DOMContentLoaded", function() {
             diagnosesTimeout = setTimeout(animateDiagnosesGraph, 3000);
         }
 
-        // Trigger Duration of Stay animation
-        const durationTop = durationSlide.getBoundingClientRect().top;
-        if (durationTop < window.innerHeight * 0.75 && !hasAnimatedDuration) {
-            hasAnimatedDuration = true;
-            setTimeout(() => {
-                loadCasesData();  // Add delay for smoother load
-            }, 2000);
-        }
-
     };
-
-    function renderDurationOfStay(durationData) {
-        d3.select("#duration-vis").html("");
-    
-        const svgWidth = 600, svgHeight = 400;
-        const svg = d3.select("#duration-vis")
-            .append("svg")
-            .attr("width", svgWidth)
-            .attr("height", svgHeight);
-    
-        const xScale = d3.scaleBand()
-            .domain(durationData.map(d => d.surgery))
-            .range([50, svgWidth - 50])
-            .padding(0.4);
-    
-        const yScale = d3.scaleLinear()
-            .domain([0, d3.max(durationData, d => parseFloat(d.days))])
-            .range([svgHeight - 50, 50]);
-    
-        svg.append("g")
-            .attr("transform", "translate(0," + (svgHeight - 50) + ")")
-            .call(d3.axisBottom(xScale))
-            .selectAll("text")
-            .attr("transform", "rotate(-45)")
-            .style("text-anchor", "end");
-    
-        svg.append("g")
-            .attr("transform", "translate(50,0)")
-            .call(d3.axisLeft(yScale));
-    
-            svg.selectAll(".bar")
-            .data(durationData)
-            .enter()
-            .append("rect")
-            .attr("class", "bar")
-            .attr("x", d => xScale(d.surgery))
-            .attr("y", svgHeight - 50)  // Start from bottom
-            .attr("width", xScale.bandwidth())
-            .attr("height", 0)  // Start with height 0
-            .attr("fill", "#69b3a2")
-            .transition()
-            .duration(1000)
-            .delay((d, i) => i * 200)  // Stagger effect
-            .attr("y", d => yScale(parseFloat(d.days)))
-            .attr("height", d => svgHeight - 50 - yScale(parseFloat(d.days)));
-        
-    
-            svg.selectAll(".label")
-            .data(durationData)
-            .enter()
-            .append("text")
-            .attr("x", d => xScale(d.surgery) + xScale.bandwidth() / 2)
-            .attr("y", d => yScale(parseFloat(d.days)) - 5)
-            .attr("text-anchor", "middle")
-            .attr("font-size", "12px")
-            .attr("fill", "#000")
-            .style("opacity", 0)  // Start hidden
-            .text(d => d.days + " days")
-            .transition()
-            .duration(1000)
-            .delay((d, i) => i * 200)  // Staggered effect
-            .style("opacity", 1);
-        
-    }
-    
 
     window.addEventListener("scroll", handleScroll);
     handleScroll();
