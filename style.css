@@ -1,0 +1,110 @@
+/* General Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    scroll-behavior: smooth;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+/* Slide Layout */
+.slide {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5vw;
+    opacity: 0;
+    transform: translateY(50px);
+    transition: all 1s ease-in-out;
+}
+
+.slide.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Content (Left Side) */
+.content {
+    width: 50%;
+    text-align: center;  /* Centered text */
+}
+
+/* Visualization (Right Side) */
+.visual {
+    width: 45%;
+    height: 70vh;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.scroll-indicator {
+    animation: bounce 2s infinite;
+    font-size: 1.5em;
+    cursor: pointer;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+/* Typography */
+h1 {
+    font-size: 3em;
+    margin-bottom: 20px;
+    margin-right: 20px;
+}
+
+p {
+    font-size: 1.3em;
+    line-height: 1.6;
+    margin-right: 10px;
+    white-space: pre-line;
+}
+
+/* Tooltip */
+.tooltip {
+    position: absolute;
+    background-color: #fff;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.fade-in-text {
+    opacity: 0;
+    transition: opacity 2s ease-in-out;
+}
+
+.fade-in-text.visible {
+    opacity: 1;
+}
+
+.highlighted {
+    font-weight: bold;
+}
+
+.scroll-indicator-admission {
+    animation: bounce 2s infinite;
+    font-size: 1.5em;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 2s ease-in-out;
+}
+
+.scroll-indicator-admission.visible {
+    opacity: 1;
+}
