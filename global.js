@@ -18,33 +18,12 @@ const tooltip = d3.select("body").append("div")
     .style("box-shadow", "0px 4px 8px rgba(0, 0, 0, 0.2)")
     .style("opacity", 0);
 
-// Function to show tooltips on hover
-function addBarTooltips() {
-    bars.on("mouseover", function (event, d) {
-            tooltip.transition().duration(200).style("opacity", 1);
-            tooltip.html(`
-                <strong>Range:</strong> ${d.x0} - ${d.x1}<br>
-                <strong>Male Count:</strong> ${d.maleCount}<br>
-                <strong>Female Count:</strong> ${d.femaleCount}
-            `)
-            .style("left", (event.pageX + 10) + "px")
-            .style("top", (event.pageY - 28) + "px");
-        })
-        .on("mousemove", function (event) {
-            tooltip.style("left", (event.pageX + 10) + "px")
-                   .style("top", (event.pageY - 28) + "px");
-        })
-        .on("mouseout", function () {
-            tooltip.transition().duration(200).style("opacity", 0);
-        });
-}
-
 // Scroll to a specific slide
 function scrollToSlide(id) {
     document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
 }
 
-// Load Duration of Stay Data from cases.txt
+// Load Cases Data for Duration of Stay
 async function loadCasesData() {
     try {
         const response = await fetch('cases.txt');
@@ -128,7 +107,6 @@ function renderDurationOfStay(durationData) {
         .attr("height", d => svgHeight - 50 - yScale(parseFloat(d.days)))
         .attr("fill", "#69b3a2");
 
-    // Labels for bars
     svg.selectAll(".label")
         .data(durationData)
         .enter()
@@ -141,14 +119,30 @@ function renderDurationOfStay(durationData) {
         .text(d => d.days + " days");
 }
 
-// Trigger animations when user scrolls
+// Restore Admission Graph
+function drawAdmissionGraph() {
+    d3.csv("demographic_dx.csv").then(function(data) {
+        console.log("Loaded Admission Data:", data);
+        document.getElementById("admission-vis").innerHTML = "Admission Graph Here"; // Placeholder
+    });
+}
+
+// Restore Diagnoses Graph
+function drawDiagnosesGraph() {
+    d3.csv("dx_group_counts.csv").then(function(data) {
+        console.log("Loaded Diagnoses Data:", data);
+        document.getElementById("diagnoses-vis").innerHTML = "Diagnoses Graph Here"; // Placeholder
+    });
+}
+
+// Scroll Event Handler
 document.addEventListener("DOMContentLoaded", function() {
     const slides = document.querySelectorAll(".slide");
     const admissionSlide = document.getElementById('admission');
     const diagnosesSlide = document.getElementById('diagnoses');
     const durationSlide = document.getElementById('duration-stay');
 
-    const handleScroll = () => {
+    function handleScroll() {
         slides.forEach(slide => {
             const slideTop = slide.getBoundingClientRect().top;
             if (slideTop < window.innerHeight * 0.75) {
@@ -156,21 +150,4 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
 
-        if (admissionSlide.getBoundingClientRect().top < window.innerHeight * 0.75 && !hasAnimatedAdmissions) {
-            hasAnimatedAdmissions = true;
-            admissionTimeout = setTimeout(animateGraphToGender, 3000);
-        }
-
-        if (diagnosesSlide.getBoundingClientRect().top < window.innerHeight * 0.75 && !hasAnimatedDiagnoses) {
-            hasAnimatedDiagnoses = true;
-            diagnosesTimeout = setTimeout(animateDiagnosesGraph, 3000);
-        }
-
-        if (durationSlide.getBoundingClientRect().top < window.innerHeight * 0.75) {
-            loadCasesData();
-        }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    handleScroll();
-});
+        if (admissionSlide.getBoundingClientRect().top < window.innerHeight * 0
