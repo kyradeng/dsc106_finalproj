@@ -3,6 +3,7 @@ let svgDiagnoses, dots, dxData;
 let currentDiagnosisIndex = 0;
 let hasAnimatedAdmissions = false;
 let hasAnimatedDiagnoses = false;
+let hasAnimatedDuration = false; // New flag for Duration of Stay
 
 const colorScale = d3.scaleOrdinal(d3.schemePaired); 
 
@@ -23,7 +24,7 @@ function scrollToSlide(id) {
     document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
 }
 
-// Load Cases Data for Duration of Stay
+// Load Duration of Stay Data from cases.txt
 async function loadCasesData() {
     try {
         const response = await fetch('cases.txt');
@@ -121,18 +122,12 @@ function renderDurationOfStay(durationData) {
 
 // Restore Admission Graph
 function drawAdmissionGraph() {
-    d3.csv("demographic_dx.csv").then(function(data) {
-        console.log("Loaded Admission Data:", data);
-        document.getElementById("admission-vis").innerHTML = "Admission Graph Here"; // Placeholder
-    });
+    d3.select("#admission-vis").html("").append("p").text("📊 Loading Admission Graph...");
 }
 
 // Restore Diagnoses Graph
 function drawDiagnosesGraph() {
-    d3.csv("dx_group_counts.csv").then(function(data) {
-        console.log("Loaded Diagnoses Data:", data);
-        document.getElementById("diagnoses-vis").innerHTML = "Diagnoses Graph Here"; // Placeholder
-    });
+    d3.select("#diagnoses-vis").html("").append("p").text("📊 Loading Diagnoses Graph...");
 }
 
 // Scroll Event Handler
@@ -150,4 +145,31 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
 
-        if (admissionSlide.getBoundingClientRect().top < window.innerHeight * 0
+        if (admissionSlide.getBoundingClientRect().top < window.innerHeight * 0.75 && !hasAnimatedAdmissions) {
+            hasAnimatedAdmissions = true;
+            admissionTimeout = setTimeout(() => {
+                document.getElementById("scroll").classList.add("visible");
+                drawAdmissionGraph();
+            }, 1000);
+        }
+
+        if (diagnosesSlide.getBoundingClientRect().top < window.innerHeight * 0.75 && !hasAnimatedDiagnoses) {
+            hasAnimatedDiagnoses = true;
+            diagnosesTimeout = setTimeout(() => {
+                drawDiagnosesGraph();
+            }, 1000);
+        }
+
+        if (durationSlide.getBoundingClientRect().top < window.innerHeight * 0.75 && !hasAnimatedDuration) {
+            hasAnimatedDuration = true;
+            loadCasesData();
+        }
+    }
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+
+    // Restore initial graphs
+    drawAdmissionGraph();
+    drawDiagnosesGraph();
+});
