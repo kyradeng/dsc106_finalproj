@@ -334,6 +334,69 @@ function animateDiagnosesGraph() {
     });
 }
 
+// Function to create Bubble Chart for Duration of Stay
+function loadDurationOfStayChart() {
+    d3.text("cases.txt").then(function (data) {
+        const rows = d3.csvParseRows(data, function(d) {
+            return {
+                department: d[19],
+                optype: d[20],
+                adm: +d[9],  // Admission time
+                dis: +d[10],  // Discharge time
+                emergency: +d[23]  // Emergency (1) or not (0)
+            };
+        });
+
+        // Compute duration of stay (convert minutes to days)
+        rows.forEach(d => d.duration_days = (d.dis - d.adm) / (24 * 60));
+
+        const width = 800, height = 500;
+        const svg = d3.select("#bubble-chart")
+            .attr("viewBox", `0 0 ${width} ${height}`)
+            .append("g")
+            .attr("transform", `translate(${width / 2}, ${height / 2})`);
+
+        const sizeScale = d3.scaleSqrt()
+            .domain([d3.min(rows, d => d.duration_days), d3.max(rows, d => d.duration_days)])
+            .range([10, 50]);
+
+        const xScale = d3.scalePoint()
+            .domain([...new Set(rows.map(d => d.optype))])
+            .range([-width / 3, width / 3]);
+
+        const simulation = d3.forceSimulation(rows)
+            .force("x", d3.forceX(d => xScale(d.optype)).strength(0.2))
+            .force("y", d3.forceY(0))
+            .force("collide", d3.forceCollide(d => sizeScale(d.duration_days) + 2))
+            .on("tick", ticked);
+
+        function ticked() {
+            const bubbles = svg.selectAll(".bubble")
+                .data(rows)
+                .join("circle")
+                .attr("class", "bubble")
+                .attr("r", d => sizeScale(d.duration_days))
+                .attr("fill", d => d.emergency ? "red" : "blue")
+                .attr("stroke", "black")
+                .attr("stroke-width", 1)
+                .attr("opacity", 0.7)
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y);
+
+            bubbles.on("mouseover", function(event, d) {
+                d3.select("#duration-of-stay-vis").append("div")
+                    .attr("class", "tooltip")
+                    .style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY - 10) + "px")
+                    .html(`<strong>${d.optype}</strong><br>Duration: ${d.duration_days.toFixed(1)} days`);
+            }).on("mouseout", function () {
+                d3.select(".tooltip").remove();
+            });
+        }
+    });
+}
+
+
 // Functionality for "Choose Your Path" Interactive Story
 function setupTakeawaySection() {
     const organData = {
@@ -437,7 +500,6 @@ function setupTakeawaySection() {
 
 
 
-
 document.addEventListener("DOMContentLoaded", function() {
     const slides = document.querySelectorAll(".slide");
     const admissionSlide = document.getElementById('admission');
@@ -473,4 +535,5 @@ document.addEventListener("DOMContentLoaded", function() {
     drawAdmissionGraph();
     drawDiagnosesGraph();
     setupTakeawaySection();
+    loadDurationOfStayChart();
 });
