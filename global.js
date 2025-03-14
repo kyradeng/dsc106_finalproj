@@ -351,14 +351,27 @@ function loadDurationOfStayChart() {
         rows.forEach(d => d.duration_days = (d.dis - d.adm) / (24 * 60));
 
         const width = 800, height = 500;
-        const svg = d3.select("#bubble-chart")
-            .attr("width", width)
-            .attr("height", height)
-            .append("g");
 
+        const svg = d3.select("#bubble-chart")
+            .attr("width", "100%") // Makes it responsive
+            .attr("height", "100%")
+            .attr("viewBox", `0 0 ${width * 1.5} ${height * 1.5}`) // Zooms out by increasing the canvas area
+            .append("g")
+            .attr("transform", `translate(${width / 4}, ${height / 4})`); // Centers elements better
+
+        const zoom = d3.zoom()
+            .scaleExtent([0.5, 2]) // Allows zooming out to 50% and in to 200%
+            .on("zoom", function (event) {
+                svg.attr("transform", event.transform);
+            });
+
+        d3.select("#bubble-chart").call(zoom);
+
+        // Reduce bubble size to prevent overcrowding
         const sizeScale = d3.scaleSqrt()
             .domain([d3.min(rows, d => d.duration_days), d3.max(rows, d => d.duration_days)])
-            .range([5, 40]); // Adjusted to prevent excessive overlap
+            .range([3, 25]); // Smaller max bubble size
+
 
         const xScale = d3.scaleLinear()
             .domain([0, rows.length])
@@ -376,6 +389,7 @@ function loadDurationOfStayChart() {
             .force("charge", d3.forceManyBody().strength(-15)) // Adds repelling force
             .alphaDecay(0.02) // Slows down simulation for smoother animation
             .on("tick", ticked);
+
 
         function ticked() {
             const bubbles = svg.selectAll(".bubble")
