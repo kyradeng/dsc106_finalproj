@@ -365,20 +365,20 @@ function loadDurationOfStayChart() {
             .range([50, width - 50]); // Spread out horizontally
 
         const yScale = d3.scaleLinear()
-            .domain([0, d3.max(rows, d => d.duration_days)])
+            .domain([d3.min(rows, d => d.duration_days), d3.max(rows, d => d.duration_days)])
             .range([height - 50, 50]); // Spread out vertically
 
-        // Add force simulation to prevent overlap
+        // Create force simulation
         const simulation = d3.forceSimulation(rows)
-            .force("x", d3.forceX(d => xScale(Math.random() * rows.length)).strength(0.1))
-            .force("y", d3.forceY(d => yScale(d.duration_days)).strength(0.3))
-            .force("collide", d3.forceCollide(d => sizeScale(d.duration_days) + 2)) // Prevents overlap
-            .force("charge", d3.forceManyBody().strength(-10)) // Repels bubbles slightly
-            .alphaDecay(0.05) // Slows down simulation
+            .force("x", d3.forceX(d => xScale(Math.random() * rows.length)).strength(0.2))
+            .force("y", d3.forceY(d => yScale(d.duration_days)).strength(1.5)) // Stronger force to distribute better
+            .force("collide", d3.forceCollide(d => sizeScale(d.duration_days) + 4)) // Increased to reduce overlapping
+            .force("charge", d3.forceManyBody().strength(-15)) // Adds repelling force
+            .alphaDecay(0.02) // Slows down simulation for smoother animation
             .on("tick", ticked);
 
         function ticked() {
-            svg.selectAll(".bubble")
+            const bubbles = svg.selectAll(".bubble")
                 .data(rows)
                 .join("circle")
                 .attr("class", "bubble")
@@ -387,13 +387,14 @@ function loadDurationOfStayChart() {
                 .attr("stroke", "black")
                 .attr("stroke-width", 1)
                 .attr("opacity", 0.7)
-                .attr("cx", d => d.x) // Dynamically update position
+                .attr("cx", d => d.x) // Updated dynamically by force simulation
                 .attr("cy", d => d.y);
         }
 
         simulation.restart(); // Ensures simulation starts properly
     });
 }
+
 
 
 
