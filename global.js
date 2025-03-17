@@ -350,7 +350,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (cols.length >= 10) {
                         let caseid = parseInt(cols[0]);
                         let surgery_duration = parseInt(cols[7]) - parseInt(cols[6]);
-                        let stay_duration = parseInt(cols[9]) - parseInt(cols[8]);
+                        let stay_duration = (parseInt(cols[9]) - parseInt(cols[8])) / 86400;
                         // Debugging: Log each value
                         console.log(`Case ${caseid}: Surgery Duration = ${surgery_duration}, Stay Duration = ${stay_duration}`);
 
@@ -397,16 +397,16 @@ document.addEventListener("DOMContentLoaded", function () {
         
 
         let layout = {
-            title: "Surgery Duration vs. Hospital Stay Duration",
+            title: "Surgery Duration vs. Hospital Stay (Days)",
             xaxis: {
                 title: "Surgery Duration (minutes)",
-                range: [0, 60000],  // 🔹 Adjust this based on expected max surgery duration
-                tickformat: ",",   // 🔹 Adds thousands separator
+                range: [0, 60000],
+                tickformat: ","
             },
             yaxis: {
-                title: "Hospital Stay Duration (units)",
-                range: [0, 25000000],  // 🔹 Adjust this based on expected max hospital stay
-                tickformat: ",",   // 🔹 Adds thousands separator
+                title: "Hospital Stay Duration (Days)",  // 🔹 Updated label
+                range: [0, 100],  // 🔹 Assuming stays are within ~1 month max
+                tickformat: ","
             },
             template: "plotly_white"
         };
