@@ -340,39 +340,37 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch("cases.txt")
             .then(response => response.text())
             .then(text => {
-                console.log("🔹 Raw cases.txt data:", text); // Debugging
+                console.log("Raw cases.txt data:", text); // 🔹 Check if file loads
     
                 let lines = text.split("\n");
                 let data = [];
     
                 for (let i = 1; i < lines.length; i++) { // Skip header
-                    let cols = lines[i].split("\t");
+                    let cols = lines[i].split(",");
                     if (cols.length >= 10) {
                         let caseid = parseInt(cols[0]);
-                        let surgery_duration = parseInt(cols[7]) - parseInt(cols[6]);  // Surgery duration in minutes
-                        let stay_duration = (parseInt(cols[9]) - parseInt(cols[8])) / 1440; // Convert to days
+                        let surgery_duration = parseInt(cols[7]) - parseInt(cols[6]);
+                        let stay_duration = (parseInt(cols[9]) - parseInt(cols[8])) / 1440; // Convert minutes to days
     
-                        // ✅ Filtering out invalid values
-                        if (
-                            !isNaN(surgery_duration) && !isNaN(stay_duration) &&
-                            surgery_duration > 5 && stay_duration > 0 && 
-                            surgery_duration < 50000 && stay_duration < 365
-                        ) {
+                        if (!isNaN(surgery_duration) && !isNaN(stay_duration) && surgery_duration > 0 && stay_duration > 0) {
                             data.push({ caseid, surgery_duration, stay_duration });
-                        } else {
-                            console.warn(`⚠️ Skipping invalid case: ${caseid} (Surgery: ${surgery_duration}, Stay: ${stay_duration})`);
                         }
                     }
                 }
     
-                console.log("✅ Cleaned data for scatter plot:", data); 
+                console.log("Processed data for scatter plot:", data); // 🔹 Check if data is valid
+    
+                if (data.length === 0) {
+                    console.error("No valid data points found!");
+                }
+    
                 createScatterPlot(data);
             })
-            .catch(error => console.error("❌ Error loading cases.txt:", error));
+            .catch(error => console.error("Error loading cases.txt:", error));
     }
     
     
-    
+
     function createScatterPlot(data) {
         let plotContainer = document.getElementById("scatter-plot");
 
@@ -388,10 +386,9 @@ document.addEventListener("DOMContentLoaded", function () {
             type: "scatter",
             text: data.map(d => `Case ID: ${d.caseid}`),
             marker: {
-                size: 12, // 🔹 Bigger size to ensure visibility
+                size: 8, // 🔹 Ensure markers are visible
                 color: "blue",
-                opacity: 0.85,
-                line: { width: 1, color: "black" } // 🔹 Outline to make points clearer
+                opacity: 0.8
             }
         };
         
@@ -401,22 +398,21 @@ document.addEventListener("DOMContentLoaded", function () {
             title: "Surgery Duration vs. Hospital Stay (Days)",
             xaxis: {
                 title: "Surgery Duration (minutes)",
-                range: [0, 60000], // 🔹 Ensure correct range
-                tickformat: ",",
-                showgrid: true
+                range: [0, 60000],
+                tickformat: ","
             },
             yaxis: {
-                title: "Hospital Stay Duration (Days)",
-                range: [0, 100], // 🔹 Assuming most stays are under 100 days
-                tickformat: ",",
-                showgrid: true
+                title: "Hospital Stay Duration (Days)",  // 🔹 Updated label
+                range: [0, 100],  // 🔹 Assuming stays are within ~1 month max
+                tickformat: ","
             },
             template: "plotly_white"
         };
-        
+
+        Plotly.newPlot(plotContainer, [trace], layout);
+    }
 
     loadCasesData();
-};
 });
 
 
