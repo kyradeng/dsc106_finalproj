@@ -338,35 +338,41 @@ function animateDiagnosesGraph() {
 document.addEventListener("DOMContentLoaded", function () {
     function loadCasesData() {
         fetch("cases.txt")
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("cases.txt not found or cannot be loaded");
-                }
-                return response.text();
-            })
+            .then(response => response.text())
             .then(text => {
-                console.log("Cases file loaded successfully"); // Debugging check
-
+                console.log("Raw cases.txt data:", text); // 🔹 Debugging: Check file content
+                
                 let lines = text.split("\n");
                 let data = [];
-
-                for (let i = 1; i < lines.length; i++) { // Skip header row
+    
+                for (let i = 1; i < lines.length; i++) { // Skip header
                     let cols = lines[i].split("\t");
                     if (cols.length >= 10) {
                         let caseid = parseInt(cols[0]);
                         let surgery_duration = parseInt(cols[7]) - parseInt(cols[6]);
                         let stay_duration = parseInt(cols[9]) - parseInt(cols[8]);
+                        // Debugging: Log each value
+                        console.log(`Case ${caseid}: Surgery Duration = ${surgery_duration}, Stay Duration = ${stay_duration}`);
 
+                        // Only add valid numbers
+                        if (!isNaN(surgery_duration) && !isNaN(stay_duration) && surgery_duration > 0 && stay_duration > 0) {
+                        data.push({ caseid, surgery_duration, stay_duration });
+                        }
+
+    
                         if (!isNaN(surgery_duration) && !isNaN(stay_duration)) {
                             data.push({ caseid, surgery_duration, stay_duration });
                         }
                     }
                 }
-
+    
+                console.log("Processed data for scatter plot:", data); // 🔹 Debugging: Check parsed data
+    
                 createScatterPlot(data);
             })
             .catch(error => console.error("Error loading cases.txt:", error));
     }
+    
 
     function createScatterPlot(data) {
         let plotContainer = document.getElementById("scatter-plot");
@@ -382,8 +388,13 @@ document.addEventListener("DOMContentLoaded", function () {
             mode: "markers",
             type: "scatter",
             text: data.map(d => `Case ID: ${d.caseid}`),
-            marker: { size: 10, color: "blue" }
+            marker: {
+                size: data.map(d => Math.max(5, d.surgery_duration / 100)), // 🔹 Minimum size 5
+                color: "blue",
+                opacity: 0.8 // 🔹 Ensure visibility
+            }
         };
+        
 
         let layout = {
             title: "Surgery Duration vs. Hospital Stay Duration",
