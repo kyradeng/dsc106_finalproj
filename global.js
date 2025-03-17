@@ -418,7 +418,7 @@ document.addEventListener("DOMContentLoaded", function () {
         
 
     loadCasesData();
-});
+};
 
 
 
