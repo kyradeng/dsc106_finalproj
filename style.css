@@ -169,3 +169,7 @@ p {
     opacity: 0.9;
 }
 
+#scatter-plot {
+    width: 100%;
+    height: 100%;
+}

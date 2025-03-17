@@ -334,6 +334,63 @@ function animateDiagnosesGraph() {
     });
 }
 
+
+document.addEventListener("DOMContentLoaded", function () {
+    // Function to load data from cases.txt
+    function loadCasesData() {
+        fetch("cases.txt")
+            .then(response => response.text())
+            .then(text => {
+                let lines = text.split("\n"); // Split file into lines
+                let data = [];
+
+                // Parse each line (assuming tab-separated values)
+                for (let i = 1; i < lines.length; i++) { // Skip header
+                    let cols = lines[i].split("\t");
+                    if (cols.length >= 10) { // Ensure sufficient columns
+                        let caseid = parseInt(cols[0]);
+                        let surgery_duration = parseInt(cols[7]) - parseInt(cols[6]); // opend - opstart
+                        let stay_duration = parseInt(cols[9]) - parseInt(cols[8]); // dis - adm
+
+                        if (!isNaN(surgery_duration) && !isNaN(stay_duration)) {
+                            data.push({ caseid, surgery_duration, stay_duration });
+                        }
+                    }
+                }
+
+                // Generate the Plotly scatter plot
+                createScatterPlot(data);
+            })
+            .catch(error => console.error("Error loading cases.txt:", error));
+    }
+
+    // Function to create the scatter plot
+    function createScatterPlot(data) {
+        let trace = {
+            x: data.map(d => d.surgery_duration),
+            y: data.map(d => d.stay_duration),
+            mode: "markers",
+            type: "scatter",
+            text: data.map(d => `Case ID: ${d.caseid}`),
+            marker: { size: 10, color: "blue" }
+        };
+
+        let layout = {
+            title: "Surgery Duration vs. Hospital Stay Duration",
+            xaxis: { title: "Surgery Duration (minutes)" },
+            yaxis: { title: "Hospital Stay Duration (units)" },
+            template: "plotly_white"
+        };
+
+        Plotly.newPlot("scatter-plot", [trace], layout);
+    }
+
+    // Load the data when the page loads
+    loadCasesData();
+});
+
+
+
 // Functionality for "Choose Your Path" Interactive Story
 function setupTakeawaySection() {
     const organData = {
@@ -502,8 +559,6 @@ function resetHealthScore() {
 
 // Attach event listener for reset button
 document.getElementById("reset-score").addEventListener("click", resetHealthScore);
-
-
 
 
 
