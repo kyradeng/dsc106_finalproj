@@ -334,84 +334,6 @@ function animateDiagnosesGraph() {
     });
 }
 
-// Function to create Bubble Chart for Duration of Stay
-function loadDurationOfStayChart() {
-    d3.text("cases.txt").then(function (data) {
-        const rows = d3.csvParseRows(data, function(d) {
-            return {
-                department: d[19],
-                optype: d[20],
-                adm: +d[9],  // Admission time
-                dis: +d[10],  // Discharge time
-                emergency: +d[23]  // Emergency (1) or not (0)
-            };
-        });
-
-        // Compute duration of stay (convert minutes to days)
-        rows.forEach(d => d.duration_days = (d.dis - d.adm) / (24 * 60));
-
-        const width = 800, height = 500;
-
-        const svg = d3.select("#bubble-chart")
-            .attr("width", "100%") // Makes it responsive
-            .attr("height", "100%")
-            .attr("viewBox", `0 0 ${width * 1.5} ${height * 1.5}`) // Zooms out by increasing the canvas area
-            .append("g")
-            .attr("transform", `translate(${width / 4}, ${height / 4})`); // Centers elements better
-
-        const zoom = d3.zoom()
-            .scaleExtent([0.5, 2]) // Allows zooming out to 50% and in to 200%
-            .on("zoom", function (event) {
-                svg.attr("transform", event.transform);
-            });
-
-        d3.select("#bubble-chart").call(zoom);
-
-        // Reduce bubble size to prevent overcrowding
-        const sizeScale = d3.scaleSqrt()
-            .domain([d3.min(rows, d => d.duration_days), d3.max(rows, d => d.duration_days)])
-            .range([3, 25]); // Smaller max bubble size
-
-
-        const xScale = d3.scaleLinear()
-            .domain([0, rows.length])
-            .range([50, width - 50]); // Spread out horizontally
-
-        const yScale = d3.scaleLinear()
-            .domain([d3.min(rows, d => d.duration_days), d3.max(rows, d => d.duration_days)])
-            .range([height - 50, 50]); // Spread out vertically
-
-        // Create force simulation
-        const simulation = d3.forceSimulation(rows)
-            .force("x", d3.forceX(d => xScale(Math.random() * rows.length)).strength(0.2))
-            .force("y", d3.forceY(d => yScale(d.duration_days)).strength(1.5)) // Stronger force to distribute better
-            .force("collide", d3.forceCollide(d => sizeScale(d.duration_days) + 4)) // Increased to reduce overlapping
-            .force("charge", d3.forceManyBody().strength(-15)) // Adds repelling force
-            .alphaDecay(0.02) // Slows down simulation for smoother animation
-            .on("tick", ticked);
-
-
-        function ticked() {
-            const bubbles = svg.selectAll(".bubble")
-                .data(rows)
-                .join("circle")
-                .attr("class", "bubble")
-                .attr("r", d => sizeScale(d.duration_days))
-                .attr("fill", d => d.emergency ? "red" : "blue")
-                .attr("stroke", "black")
-                .attr("stroke-width", 1)
-                .attr("opacity", 0.7)
-                .attr("cx", d => d.x) // Updated dynamically by force simulation
-                .attr("cy", d => d.y);
-        }
-
-        simulation.restart(); // Ensures simulation starts properly
-    });
-}
-
-
-
-
 // Functionality for "Choose Your Path" Interactive Story
 function setupTakeawaySection() {
     const organData = {
@@ -509,7 +431,77 @@ function setupTakeawaySection() {
             .duration(500)
             .attr("fill", "#ff6f61"); // Highlighted color
     });
+
+    const facts = {
+        "stomach": "A diet rich in fiber lowers the risk of gastrointestinal cancers.",
+        "liver": "Excessive alcohol consumption increases liver disease risk.",
+        "heart": "30 minutes of exercise daily cuts heart disease risk by 50%.",
+        "muscles": "Regular strength training helps prevent muscle loss and improves metabolism.",
+        "joints": "Low-impact exercises like yoga and swimming help protect joint health.",
+        "lungs": "Smoking accounts for 85% of lung cancer cases.",
+        "throat": "Acid reflux and smoking can increase the risk of throat cancer.",
+        "breast": "Regular mammograms help detect breast cancer early.",
+        "colon": "Screenings reduce colon cancer deaths by 60%.",
+        "prostate": "Men over 50 should get regular prostate exams."
+    };
+    
+    // Append a tooltip div
+    const tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("position", "absolute")
+        .style("background", "#fff")
+        .style("border", "1px solid #ccc")
+        .style("border-radius", "8px")
+        .style("padding", "8px")
+        .style("font-size", "12px")
+        .style("box-shadow", "0px 4px 8px rgba(0, 0, 0, 0.2)")
+        .style("opacity", 0);
+    
+    // Show tooltip on hover
+    organs.on("mouseover", function (event, d) {
+            tooltip.transition().duration(200).style("opacity", 1);
+            tooltip.html(facts[d])
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 28) + "px");
+        })
+        .on("mousemove", function (event) {
+            tooltip.style("left", (event.pageX + 10) + "px")
+                   .style("top", (event.pageY - 28) + "px");
+        })
+        .on("mouseout", function () {
+            tooltip.transition().duration(200).style("opacity", 0);
+        });
+    
 }
+
+let healthScore = 50;
+
+function updateHealthScore(change) {
+    healthScore = Math.min(100, Math.max(0, healthScore + change)); // Keep between 0-100
+    d3.select("#health-score-fill")
+        .style("width", healthScore + "%")
+        .style("background-color", healthScore >= 80 ? "green" : healthScore >= 50 ? "yellow" : "red");
+    d3.select("#health-score-value").text(healthScore + "%");
+}
+
+document.addEventListener("click", function (event) {
+    if (event.target.classList.contains("path-btn")) {
+        const selectedPath = event.target.getAttribute("data-prevention");
+        updateHealthScore(10);
+    }
+});
+
+// Reset Health Score
+function resetHealthScore() {
+    healthScore = 50; // Reset to initial value
+    d3.select("#health-score-fill")
+        .style("width", "50%")
+        .style("background-color", "red"); // Reset to starting color
+    d3.select("#health-score-value").text("50%");
+}
+
+// Attach event listener for reset button
+document.getElementById("reset-score").addEventListener("click", resetHealthScore);
 
 
 
@@ -550,5 +542,4 @@ document.addEventListener("DOMContentLoaded", function() {
     drawAdmissionGraph();
     drawDiagnosesGraph();
     setupTakeawaySection();
-    loadDurationOfStayChart();
 });
