@@ -336,21 +336,26 @@ function animateDiagnosesGraph() {
 
 
 document.addEventListener("DOMContentLoaded", function () {
-    // Function to load data from cases.txt
     function loadCasesData() {
         fetch("cases.txt")
-            .then(response => response.text())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("cases.txt not found or cannot be loaded");
+                }
+                return response.text();
+            })
             .then(text => {
-                let lines = text.split("\n"); // Split file into lines
+                console.log("Cases file loaded successfully"); // Debugging check
+
+                let lines = text.split("\n");
                 let data = [];
 
-                // Parse each line (assuming tab-separated values)
-                for (let i = 1; i < lines.length; i++) { // Skip header
+                for (let i = 1; i < lines.length; i++) { // Skip header row
                     let cols = lines[i].split("\t");
-                    if (cols.length >= 10) { // Ensure sufficient columns
+                    if (cols.length >= 10) {
                         let caseid = parseInt(cols[0]);
-                        let surgery_duration = parseInt(cols[7]) - parseInt(cols[6]); // opend - opstart
-                        let stay_duration = parseInt(cols[9]) - parseInt(cols[8]); // dis - adm
+                        let surgery_duration = parseInt(cols[7]) - parseInt(cols[6]);
+                        let stay_duration = parseInt(cols[9]) - parseInt(cols[8]);
 
                         if (!isNaN(surgery_duration) && !isNaN(stay_duration)) {
                             data.push({ caseid, surgery_duration, stay_duration });
@@ -358,14 +363,19 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 }
 
-                // Generate the Plotly scatter plot
                 createScatterPlot(data);
             })
             .catch(error => console.error("Error loading cases.txt:", error));
     }
 
-    // Function to create the scatter plot
     function createScatterPlot(data) {
+        let plotContainer = document.getElementById("scatter-plot");
+
+        if (!plotContainer) {
+            console.error("scatter-plot div not found!");
+            return;
+        }
+
         let trace = {
             x: data.map(d => d.surgery_duration),
             y: data.map(d => d.stay_duration),
@@ -382,12 +392,12 @@ document.addEventListener("DOMContentLoaded", function () {
             template: "plotly_white"
         };
 
-        Plotly.newPlot("scatter-plot", [trace], layout);
+        Plotly.newPlot(plotContainer, [trace], layout);
     }
 
-    // Load the data when the page loads
     loadCasesData();
 });
+
 
 
 
@@ -558,7 +568,12 @@ function resetHealthScore() {
 }
 
 // Attach event listener for reset button
-document.getElementById("reset-score").addEventListener("click", resetHealthScore);
+document.addEventListener("DOMContentLoaded", function () {
+    let resetButton = document.getElementById("reset-score");
+    if (resetButton) {
+        resetButton.addEventListener("click", resetHealthScore);
+    }
+});
 
 
 
