@@ -398,8 +398,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
         let layout = {
             title: "Surgery Duration vs. Hospital Stay Duration",
-            xaxis: { title: "Surgery Duration (minutes)" },
-            yaxis: { title: "Hospital Stay Duration (units)" },
+            xaxis: {
+                title: "Surgery Duration (minutes)",
+                range: [0, 60000],  // 🔹 Adjust this based on expected max surgery duration
+                tickformat: ",",   // 🔹 Adds thousands separator
+            },
+            yaxis: {
+                title: "Hospital Stay Duration (units)",
+                range: [0, 25000000],  // 🔹 Adjust this based on expected max hospital stay
+                tickformat: ",",   // 🔹 Adds thousands separator
+            },
             template: "plotly_white"
         };
 
