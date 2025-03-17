@@ -340,8 +340,8 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch("cases.txt")
             .then(response => response.text())
             .then(text => {
-                console.log("Raw cases.txt data:", text); // 🔹 Debugging: Check file content
-                
+                console.log("Raw cases.txt data:", text); // 🔹 Check if file loads
+    
                 let lines = text.split("\n");
                 let data = [];
     
@@ -350,28 +350,25 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (cols.length >= 10) {
                         let caseid = parseInt(cols[0]);
                         let surgery_duration = parseInt(cols[7]) - parseInt(cols[6]);
-                        let stay_duration = (parseInt(cols[9]) - parseInt(cols[8])) / 86400;
-                        // Debugging: Log each value
-                        console.log(`Case ${caseid}: Surgery Duration = ${surgery_duration}, Stay Duration = ${stay_duration}`);
-
-                        // Only add valid numbers
-                        if (!isNaN(surgery_duration) && !isNaN(stay_duration) && surgery_duration > 0 && stay_duration > 0) {
-                        data.push({ caseid, surgery_duration, stay_duration });
-                        }
-
+                        let stay_duration = (parseInt(cols[9]) - parseInt(cols[8])) / 1440; // Convert minutes to days
     
-                        if (!isNaN(surgery_duration) && !isNaN(stay_duration)) {
+                        if (!isNaN(surgery_duration) && !isNaN(stay_duration) && surgery_duration > 0 && stay_duration > 0) {
                             data.push({ caseid, surgery_duration, stay_duration });
                         }
                     }
                 }
     
-                console.log("Processed data for scatter plot:", data); // 🔹 Debugging: Check parsed data
+                console.log("Processed data for scatter plot:", data); // 🔹 Check if data is valid
+    
+                if (data.length === 0) {
+                    console.error("No valid data points found!");
+                }
     
                 createScatterPlot(data);
             })
             .catch(error => console.error("Error loading cases.txt:", error));
     }
+    
     
 
     function createScatterPlot(data) {
@@ -389,11 +386,12 @@ document.addEventListener("DOMContentLoaded", function () {
             type: "scatter",
             text: data.map(d => `Case ID: ${d.caseid}`),
             marker: {
-                size: data.map(d => Math.max(5, d.surgery_duration / 100)), // 🔹 Minimum size 5
+                size: 8, // 🔹 Ensure markers are visible
                 color: "blue",
-                opacity: 0.8 // 🔹 Ensure visibility
+                opacity: 0.8
             }
         };
+        
         
 
         let layout = {
