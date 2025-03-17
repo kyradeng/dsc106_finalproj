@@ -340,37 +340,37 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch("cases.txt")
             .then(response => response.text())
             .then(text => {
-                console.log("🔹 Raw cases.txt data:", text); // ✅ Check if file is loading
+                console.log("🔹 Raw cases.txt data:", text); // Debugging
     
                 let lines = text.split("\n");
                 let data = [];
     
                 for (let i = 1; i < lines.length; i++) { // Skip header
-                    let cols = lines[i].split(",");
+                    let cols = lines[i].split("\t");
                     if (cols.length >= 10) {
                         let caseid = parseInt(cols[0]);
-                        let surgery_duration = parseInt(cols[7]) - parseInt(cols[6]);
+                        let surgery_duration = parseInt(cols[7]) - parseInt(cols[6]);  // Surgery duration in minutes
                         let stay_duration = (parseInt(cols[9]) - parseInt(cols[8])) / 1440; // Convert to days
     
-                        // ✅ Check if numbers are valid
-                        console.log(`🟢 Case ${caseid}: Surgery = ${surgery_duration}, Stay = ${stay_duration}`);
-    
-                        if (!isNaN(surgery_duration) && !isNaN(stay_duration) && surgery_duration > 0 && stay_duration > 0) {
+                        // ✅ Filtering out invalid values
+                        if (
+                            !isNaN(surgery_duration) && !isNaN(stay_duration) &&
+                            surgery_duration > 5 && stay_duration > 0 && 
+                            surgery_duration < 50000 && stay_duration < 365
+                        ) {
                             data.push({ caseid, surgery_duration, stay_duration });
+                        } else {
+                            console.warn(`⚠️ Skipping invalid case: ${caseid} (Surgery: ${surgery_duration}, Stay: ${stay_duration})`);
                         }
                     }
                 }
     
-                console.log("🔹 Processed data for scatter plot:", data); // ✅ See the final data
-    
-                if (data.length === 0) {
-                    console.error("❌ No valid data points found! Check cases.txt.");
-                }
-    
+                console.log("✅ Cleaned data for scatter plot:", data); 
                 createScatterPlot(data);
             })
             .catch(error => console.error("❌ Error loading cases.txt:", error));
     }
+    
     
     
     
@@ -398,25 +398,24 @@ document.addEventListener("DOMContentLoaded", function () {
         };
         
         
-        
 
         let layout = {
             title: "Surgery Duration vs. Hospital Stay (Days)",
             xaxis: {
                 title: "Surgery Duration (minutes)",
-                range: [0, 60000],
-                tickformat: ","
+                range: [0, 60000], // 🔹 Ensure correct range
+                tickformat: ",",
+                showgrid: true
             },
             yaxis: {
-                title: "Hospital Stay Duration (Days)",  // 🔹 Updated label
-                range: [0, 100],  // 🔹 Assuming stays are within ~1 month max
-                tickformat: ","
+                title: "Hospital Stay Duration (Days)",
+                range: [0, 100], // 🔹 Assuming most stays are under 100 days
+                tickformat: ",",
+                showgrid: true
             },
             template: "plotly_white"
         };
-
-        Plotly.newPlot(plotContainer, [trace], layout);
-    }
+        
 
     loadCasesData();
 });
