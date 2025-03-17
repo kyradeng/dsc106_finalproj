@@ -340,17 +340,20 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch("cases.txt")
             .then(response => response.text())
             .then(text => {
-                console.log("Raw cases.txt data:", text); // 🔹 Check if file loads
+                console.log("🔹 Raw cases.txt data:", text); // ✅ Check if file is loading
     
                 let lines = text.split("\n");
                 let data = [];
     
                 for (let i = 1; i < lines.length; i++) { // Skip header
-                    let cols = lines[i].split("\t");
+                    let cols = lines[i].split(",");
                     if (cols.length >= 10) {
                         let caseid = parseInt(cols[0]);
                         let surgery_duration = parseInt(cols[7]) - parseInt(cols[6]);
-                        let stay_duration = (parseInt(cols[9]) - parseInt(cols[8])) / 1440; // Convert minutes to days
+                        let stay_duration = (parseInt(cols[9]) - parseInt(cols[8])) / 1440; // Convert to days
+    
+                        // ✅ Check if numbers are valid
+                        console.log(`🟢 Case ${caseid}: Surgery = ${surgery_duration}, Stay = ${stay_duration}`);
     
                         if (!isNaN(surgery_duration) && !isNaN(stay_duration) && surgery_duration > 0 && stay_duration > 0) {
                             data.push({ caseid, surgery_duration, stay_duration });
@@ -358,16 +361,17 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 }
     
-                console.log("Processed data for scatter plot:", data); // 🔹 Check if data is valid
+                console.log("🔹 Processed data for scatter plot:", data); // ✅ See the final data
     
                 if (data.length === 0) {
-                    console.error("No valid data points found!");
+                    console.error("❌ No valid data points found! Check cases.txt.");
                 }
     
                 createScatterPlot(data);
             })
-            .catch(error => console.error("Error loading cases.txt:", error));
+            .catch(error => console.error("❌ Error loading cases.txt:", error));
     }
+    
     
     
 
@@ -386,11 +390,13 @@ document.addEventListener("DOMContentLoaded", function () {
             type: "scatter",
             text: data.map(d => `Case ID: ${d.caseid}`),
             marker: {
-                size: 8, // 🔹 Ensure markers are visible
+                size: 12, // 🔹 Bigger size to ensure visibility
                 color: "blue",
-                opacity: 0.8
+                opacity: 0.85,
+                line: { width: 1, color: "black" } // 🔹 Outline to make points clearer
             }
         };
+        
         
         
 
